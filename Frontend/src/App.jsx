@@ -13,6 +13,18 @@ import Client from './client/Client'
 import Home from './client/components/home/Home'
 import Login from './client/components/login/Login'
 import Register from './client/components/register/Register'
+import Teacher from './teacher/Teacher'
+import TeacherDetails from './teacher/components/TeacherDetails/TeacherDetails'
+import ScheduleTeacher from './teacher/components/Schedule/ScheduleTeacher'
+import AttendanceTeacher from './teacher/components/attendance/AttendanceTeacher'
+import ExaminationTeacher from './teacher/components/examinations/ExaminationTeacher'
+import NoticeTeacher from './teacher/components/notice/NoticeTeacher'
+import Student from './student/Student'
+import StudentDetails from './student/components/studentdetails/StudentDetails'
+import ScheduleStudent from './student/components/schedule/ScheduleStudent'
+import AttendanceStudents from './student/components/atttendance/AttendanceStudents'
+import ExaminationStudents from './student/components/examinations/ExaminationStudents'
+import NoticeStudents from './student/components/notice/NoticeStudents'
 
 function App() {
 
@@ -36,12 +48,24 @@ function App() {
          </Route>
 
 
-        {/* STUDENT */}
-         <Route></Route>
+        {/* TEACHER */}
+         <Route path='teacher' element={<Teacher/>}>
+            <Route index element={<TeacherDetails/>}/>
+            <Route path='schedule' element={<ScheduleTeacher/>}/>
+            <Route path='attendance' element={<AttendanceTeacher/>}/>
+            <Route path='examinations' element={<ExaminationTeacher/>}/>
+            <Route path='notifications' element={<NoticeTeacher/>}/>
+         </Route>
 
 
-         {/* TEACHER */}
-         <Route></Route>
+         {/* STUDENT */}
+         <Route path='student' element={<Student/>}>
+            <Route index element={<StudentDetails/>}/>
+            <Route path='schedule' element={<ScheduleStudent/>}/>
+            <Route path='attendance' element={<AttendanceStudents/>}/>
+            <Route path='examinations' element={<ExaminationStudents/>}/>
+            <Route path='notifications' element={<NoticeStudents/>}/>
+         </Route>
 
          {/* CLIENT */}
          <Route path='/' element={<Client/>}>

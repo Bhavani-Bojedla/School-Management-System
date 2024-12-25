@@ -19,7 +19,7 @@ import ListItemText from "@mui/material/ListItemText";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
 import MailIcon from "@mui/icons-material/Mail";
 import { Outlet, useNavigate } from "react-router-dom";
-import { SchoolnavArr } from "../NavbarLinks/Links";
+import { TeachernavArr } from "../NavbarLinks/Links";
 
 const drawerWidth = 240;
 
@@ -101,7 +101,7 @@ const Drawer = styled(MuiDrawer, {
   ],
 }));
 
-export default function School() {
+export default function Teacher() {
   const theme = useTheme();
   const navigate = useNavigate();
   const [open, setOpen] = React.useState(false);
@@ -155,7 +155,7 @@ export default function School() {
           </DrawerHeader>
           <Divider />
           <List>
-            {SchoolnavArr.map((navItem, index) => (
+            {TeachernavArr.map((navItem, index) => (
               <ListItem key={index} disablePadding sx={{ display: "block" }}>
                 <ListItemButton
                   sx={[

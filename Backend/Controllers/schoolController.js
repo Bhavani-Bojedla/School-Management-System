@@ -18,7 +18,6 @@ const registerSchool = async (req, res) => {
         process.env.SCHOOL_IMAGE_PATH, 
         originalFilename
       );
-
       let photoData = fs.readFileSync(filepath);
       fs.writeFileSync(newpath, photoData);
 

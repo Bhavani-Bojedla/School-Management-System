@@ -1,21 +1,22 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
-import { useFormik } from "formik";
+import { Form, useFormik } from "formik";
 import { registerSchema } from "../../../yupSchema/registerSchema";
 import { Button, CardMedia, Typography } from "@mui/material";
+import axios from "axios";
 export default function Register() {
   const [file, setfile] = React.useState(null);
   const [imageurl, setimageurl] = React.useState(null);
-  
-  const fileInputRef=React.useState(null);
-  const handleClearfile=()=>{
-    if(fileInputRef.current){
-      fileInputRef.current.value=''
+
+  const fileInputRef = React.useState(null);
+  const handleClearfile = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
     setfile(null);
     setimageurl(null);
-  }
+  };
   const initialValues = {
     school_name: "",
     email: "",
@@ -28,8 +29,23 @@ export default function Register() {
     validationSchema: registerSchema,
     onSubmit: (values) => {
       console.log("Register submit values", values);
-      formik.resetForm();
-      handleClearfile();
+      const fd = new FormData();
+      fd.append("school_img", file, file.name);
+      fd.append("school_name", values.school_name);
+      fd.append("email", values.email);
+      fd.append("owner_name", values.owner_name);
+      fd.append("password", values.password);
+
+      axios
+        .post(`http://localhost:5000/api/school/register`, fd)
+        .then((res) => {
+          console.log(res.data);
+          formik.resetForm();
+          handleClearfile();
+        })
+        .catch((e) => {
+          console.log(e);
+        });
     },
   });
 
@@ -58,12 +74,16 @@ export default function Register() {
         type="file"
         inputRef={fileInputRef}
         onChange={(event) => {
-          {addImage(event)}
+          {
+            addImage(event);
+          }
         }}
       />
-      {imageurl && <Box>
-        <CardMedia component={'img'} image={imageurl}/>
-      </Box> }
+      {imageurl && (
+        <Box>
+          <CardMedia component={"img"} image={imageurl} />
+        </Box>
+      )}
       <TextField
         name="school_name"
         label="School Name"

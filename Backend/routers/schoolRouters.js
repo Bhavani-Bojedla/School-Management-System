@@ -6,7 +6,7 @@ const router=express.Router();
 
 router.post("/register",registerSchool);
 router.get("/all",getSchools);
-router.get("/login",loginSchool);
+router.post("/login",loginSchool);
 router.patch("/update",authMiddleware(['SCHOOL']),updateSchool);
 router.get("/fetch-single",authMiddleware(['SCHOOL']),getSchoolOwnData);
  

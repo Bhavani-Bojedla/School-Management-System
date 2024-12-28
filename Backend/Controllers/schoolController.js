@@ -10,8 +10,8 @@ const registerSchool = async (req, res) => {
   try {
     const form = new formidable.IncomingForm();
     form.parse(req, async (e, fields, files) => {
-      const schoolimg = await school.find({ email: fields.email[0] });
-      if (schoolimg) {
+      const schooling = await school.findOne({ email: fields.email[0] });
+      if (schooling) {
         return res.status(409).json({
           success: false,
           message: "Email is already registered",
@@ -57,9 +57,10 @@ const registerSchool = async (req, res) => {
 
 const loginSchool = async (req, res) => {
   try {
-    const school = await school.findOne({ email: req.body.email });
-    if (school) {
-      const isAuth = bcrypt.compareSync(req.body.password, school.password);
+    const School = await school.findOne({ email: req.body.email });
+
+    if (School) {
+      const isAuth = bcrypt.compareSync(req.body.password, School.password);
       if (isAuth) {
         const jwtSecret = process.env.JWT_SECRET;
         const token = jwt.sign(

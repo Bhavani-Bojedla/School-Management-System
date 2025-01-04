@@ -65,11 +65,11 @@ const loginSchool = async (req, res) => {
         const jwtSecret = process.env.JWT_SECRET;
         const token = jwt.sign(
           {
-            id: school._id,
-            schoolId: school._id,
-            owner_name: school.owner_name,
-            school_name: school.school_name,
-            image_url: school.school_img,
+            id: School._id,
+            schoolId: School._id,
+            owner_name: School.owner_name,
+            school_name: School.school_name,
+            image_url: School.school_img,
             role: "SCHOOL",
           },
           jwtSecret
@@ -79,10 +79,10 @@ const loginSchool = async (req, res) => {
           success: true,
           message: "Success Login",
           user: {
-            id: school._id,
-            owner_name: school.owner_name,
-            school_name: school.school_name,
-            image_url: school.img,
+            id: School._id,
+            owner_name: School.owner_name,
+            school_name: School.school_name,
+            image_url: School.school_img,
             role: "SCHOOL",
           },
         });
@@ -110,7 +110,7 @@ const getSchools = async (req, res) => {
   try {
     const schools = await school
       .find()
-      .select(["-password", "-_id", "-email", "-owner_name", "-createdAt"]);
+      .select(["-password", "-_id", "-email",  "-createdAt"]);
     res.status(200).json({
       success: true,
       message: "Succcess in fetching all schools.",
@@ -127,7 +127,7 @@ const getSchools = async (req, res) => {
 const getSchoolOwnData = async (req, res) => {
   try {
     const id = req.user.id;
-    const School = await school.findOne({ _id: id });
+    const School = await school.findOne({ _id: id }).select(["-password"]);
     if (School) {
       res.status(200).json({
         success: true,
@@ -180,13 +180,16 @@ const updateSchool = async (req, res) => {
         Object.keys(fields).forEach((field) => {
           School[field] = fields[field][0];
         });
-        await School.save();
-        res.status(200).json({
-          success: true,
-          message: "School Updates successfully",
-          School,
-        });
+        School.school_img=originalFilename
+      }else{
+        School['school_name']=fields.school_name[0]
       }
+      await School.save();
+      res.status(200).json({
+        success: true,
+        message: "School Updates successfully",
+        School,
+      });
     });
   } catch (error) {
     res.status(500).json({

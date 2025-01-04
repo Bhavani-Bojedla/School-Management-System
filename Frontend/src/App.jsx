@@ -25,16 +25,18 @@ import ScheduleStudent from './student/components/schedule/ScheduleStudent'
 import AttendanceStudents from './student/components/atttendance/AttendanceStudents'
 import ExaminationStudents from './student/components/examinations/ExaminationStudents'
 import NoticeStudents from './student/components/notice/NoticeStudents'
+import ProtectedRoute from './Gaurd/ProtectedRoute'
+import { AuthProvider } from './context/AuthContext'
 
 function App() {
 
 
   return (
-   <>
+   <AuthProvider>
      <BrowserRouter>
        <Routes>
         {/* SCHOOL ROUTE */}
-         <Route path='school' element={<School/>}>
+         <Route path='school' element={<ProtectedRoute allowedRoles={['SCHOOL']}><School/></ProtectedRoute>}>
             <Route index element={<Dashboard/>}/>
             <Route path='attendance' element={<Attendance/>}/>
             <Route path='class' element={<Class/>}/>
@@ -49,7 +51,7 @@ function App() {
 
 
         {/* TEACHER */}
-         <Route path='teacher' element={<Teacher/>}>
+         <Route path='teacher' element={<ProtectedRoute allowedRoles={['TEACHER']}><Teacher/></ProtectedRoute>}>
             <Route index element={<TeacherDetails/>}/>
             <Route path='schedule' element={<ScheduleTeacher/>}/>
             <Route path='attendance' element={<AttendanceTeacher/>}/>
@@ -59,7 +61,7 @@ function App() {
 
 
          {/* STUDENT */}
-         <Route path='student' element={<Student/>}>
+         <Route path='student' element={<ProtectedRoute allowedRoles={['STUDENT']}><Student/></ProtectedRoute>}>
             <Route index element={<StudentDetails/>}/>
             <Route path='schedule' element={<ScheduleStudent/>}/>
             <Route path='attendance' element={<AttendanceStudents/>}/>
@@ -76,7 +78,7 @@ function App() {
          </Route>
        </Routes>
      </BrowserRouter>
-   </>
+   </AuthProvider>
   )
 }
 

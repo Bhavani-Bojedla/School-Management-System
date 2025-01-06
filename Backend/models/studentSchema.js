@@ -10,8 +10,8 @@ const studentSchema= new mongoose.Schema({
         required:true
     },
     student_class:{
-        type:String,
-        required:true
+        type:mongoose.Schema.ObjectId,
+        ref:"class"
     },
     age:{
         type:String,

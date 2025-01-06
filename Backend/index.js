@@ -15,12 +15,14 @@ app.use(cookieparser());
 const schoolRouter = require("./routers/schoolRouters");
 const classRouter=require("./routers/classRouters")
 const subjectRouter=require("./routers/subjectRouter")
+const teacherRouter=require("./routers/teacherRouters")
 const studentRouter=require("./routers/studentRouter")
 //routers using
 app.use("/api/school", schoolRouter);
 app.use("/api/class",classRouter);
 app.use("/api/subject",subjectRouter);
 app.use("/api/student",studentRouter);
+app.use("/api/teacher",teacherRouter);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {

@@ -6,6 +6,7 @@ import {
   MenuItem,
   Select,
   TextField,
+  Typography,
 } from "@mui/material";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -17,9 +18,10 @@ import axios from "axios";
 import { baseApi } from "../../../Environment";
 import { periodSchema } from "../../../yupSchema/periodSchema";
 import dayjs from "dayjs";
+import MessageSnackbar from "../../../Basic utitlity compoenents/SnackBar/MessageSnackbar";
 
-export default function ScheduleEvents() {
-  const periods = [
+export default function ScheduleEvents({ selectedClass }) {
+  const Periods = [
     {
       id: 1,
       label: "period 1 (10:00 AM - 11:00 AM)",
@@ -29,63 +31,104 @@ export default function ScheduleEvents() {
     {
       id: 2,
       label: "period 2 (11:00 AM - 12:00 PM)",
-      startTime: "10:00",
-      endTime: "11:00",
+      startTime: "11:00",
+      endTime: "12:00",
     },
     {
       id: 3,
-      label: "period 3 (2:00 PM - 3:00 PM)",
-      startTime: "10:00",
-      endTime: "11:00",
+      label: "period 3 (12:00 PM - 1:00 PM)",
+      startTime: "12:00",
+      endTime: "13:00",
     },
     {
       id: 4,
-      label: "period 4 (2:00 PM - 3:00 PM)",
-      startTime: "10:00",
-      endTime: "11:00",
+      label: "Lunch Break (1:00 PM - 2:00 PM)",
+      startTime: "13:00",
+      endTime: "14:00",
     },
     {
       id: 5,
-      label: "period 5 (2:00 PM - 3:00 PM)",
-      startTime: "10:00",
-      endTime: "11:00",
+      label: "period 4 (2:00 PM - 3:00 PM)",
+      startTime: "14:00",
+      endTime: "15:00",
+    },
+    {
+      id: 6,
+      label: "period 5 (3:00 PM - 4:00 PM)",
+      startTime: "15:00",
+      endTime: "16:00",
     },
   ];
-
   const [Teachers, setTeachers] = useState([]);
   const [Subjects, setSubjects] = useState([]);
   const initialValues = {
-    teacher: "",
-    subject: "",
-    period: "",
-    date: null,
+    teachers: "",
+    subjects: "",
+    periods: "",
+    date: new Date(),
   };
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("success");
+  const handleMessageClose = () => {
+    setMessage("");
+  };
+
   const formik = useFormik({
     initialValues,
     validationSchema: periodSchema,
     onSubmit: (values) => {
-      console.log(values);
+      let date = values.date;
+      let startTime = values.periods.split(",")[0];
+      let endTime = values.periods.split(",")[1];
+      axios
+        .post(`${baseApi}/schedule/create`, {
+          ...values,
+          selectedClass,
+          startTime: new Date(
+            date.setHours(startTime.split(":")[0], startTime.split(":")[1])
+          ),
+          endTime: new Date(
+            date.setHours(startTime.split(":")[0], startTime.split(":")[1])
+          ),
+        })
+        .then((resp) => {
+          console.log("response", resp);
+          setMessage(resp.data.message);
+          setMessageType("success")
+          formik.resetForm();
+
+        })
+        .catch((e) => {
+          console.log(e)
+          setMessage("Error in creation of schedule");
+          setMessageType("error");
+    });
     },
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const teacherResponse = await axios.get(`${baseApi}/teacher/all`);
-        const subjectResponse = await axios.get(`${baseApi}/subject/all`);
-        setTeachers(teacherResponse.data.teachers);
-        setSubjects(subjectResponse.data.data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
+  const fetchData = async () => {
+    try {
+      const teacherResponse = await axios.get(`${baseApi}/teacher/all`, {
+        params: {},
+      });
+      const subjectResponse = await axios.get(`${baseApi}/subject/all`, {
+        params: {},
+      });
+      setTeachers(teacherResponse.data.teachers);
+      setSubjects(subjectResponse.data.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchData();
   }, []);
-
   return (
     <div>
-      <h1>Schedule Event</h1>
+      {message && <MessageSnackbar message={message} messageType={messageType} handleClose={handleMessageClose} />}
+      
+      <div>Schedule Event</div>
       <Box
         component="form"
         sx={{
@@ -101,111 +144,104 @@ export default function ScheduleEvents() {
         autoComplete="off"
         onSubmit={formik.handleSubmit}
       >
-        <Box sx={{ minWidth: 120 }}>
-          <FormControl fullWidth>
-            <InputLabel id="demo-simple-select-label">Teachers</InputLabel>
-            <Select
-              labelId="demo-simple-select-label"
-              id="demo-simple-select"
-              value={formik.values.teacher}
-              label="teacher"
-              name="teacher"
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-            >
-              {Teachers &&
-                Teachers.map((item) => {
-                  return (
-                    <MenuItem key={item._id} value={item._id}>
-                      {item.name}
-                    </MenuItem>
-                  );
-                })}
-            </Select>
-          </FormControl>
-        </Box>
-        {formik.touched.teacher && formik.errors.teacher && (
+        <Typography variant="h4" sx={{ textAlign: "center" }}>
+          Add New Period
+        </Typography>
+        <FormControl fullWidth>
+          <InputLabel id="demo-simple-select-label">Teachers</InputLabel>
+          <Select
+            value={formik.values.teachers}
+            label="Teacher"
+            name="teachers"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+          >
+            {Teachers &&
+              Teachers.map((item) => {
+                return (
+                  <MenuItem key={item._id} value={item._id}>
+                    {item.name}
+                  </MenuItem>
+                );
+              })}
+          </Select>
+        </FormControl>
+        {formik.touched.teachers && formik.errors.teachers && (
           <p style={{ color: "red", textTransform: "capitalize" }}>
-            {formik.errors.teacher}
+            {formik.errors.teachers}
           </p>
         )}
 
-        <Box sx={{ minWidth: 120 }}>
-          <FormControl fullWidth>
-            <InputLabel id="demo-simple-select-label">Subjects</InputLabel>
-            <Select
-              labelId="demo-simple-select-label"
-              id="demo-simple-select"
-              value={formik.values.subject}
-              label="subject"
-              name="subject"
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-            >
-              {Subjects &&
-                Subjects.map((item) => {
-                  return (
-                    <MenuItem key={item._id} value={item._id}>
-                      {item.subject_name}
-                    </MenuItem>
-                  );
-                })}
-            </Select>
-          </FormControl>
-        </Box>
-        {formik.touched.subject && formik.errors.subject && (
+        <FormControl fullWidth>
+          <InputLabel id="demo-simple-select-label">Subjects</InputLabel>
+          <Select
+            value={formik.values.subjects}
+            label="Subjects"
+            name="subjects"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+          >
+            {Subjects &&
+              Subjects.map((item) => {
+                return (
+                  <MenuItem key={item._id} value={item._id}>
+                    {item.subject_name}
+                  </MenuItem>
+                );
+              })}
+          </Select>
+        </FormControl>
+
+        {formik.touched.subjects && formik.errors.subjects && (
           <p style={{ color: "red", textTransform: "capitalize" }}>
-            {formik.errors.subject}
+            {formik.errors.subjects}
           </p>
         )}
 
-        <Box sx={{ minWidth: 120 }}>
-          <FormControl fullWidth>
-            <InputLabel id="demo-simple-select-label">Periods</InputLabel>
-            <Select
-              labelId="demo-simple-select-label"
-              id="demo-simple-select"
-              value={formik.values.period}
-              label="Periods"
-              name="period"
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-            >
-              {periods &&
-                periods.map((item) => {
-                  return (
-                    <MenuItem
-                      key={item.id}
-                      value={`${item.startTime}, ${item.endTime}`}
-                    >
-                      {item.label}
-                    </MenuItem>
-                  );
-                })}
-            </Select>
-          </FormControl>
-        </Box>
-        {formik.touched.period && formik.errors.period && (
+        <FormControl fullWidth>
+          <InputLabel id="demo-simple-select-label">Periods</InputLabel>
+          <Select
+            value={formik.values.periods}
+            label="Periods"
+            name="periods"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+          >
+            {Periods &&
+              Periods.map((item) => {
+                return (
+                  <MenuItem
+                    key={item.id}
+                    value={`${item.startTime}, ${item.endTime}`}
+                  >
+                    {item.label}
+                  </MenuItem>
+                );
+              })}
+          </Select>
+        </FormControl>
+
+        {formik.touched.periods && formik.errors.periods && (
           <p style={{ color: "red", textTransform: "capitalize" }}>
-            {formik.errors.period}
+            {formik.errors.periods}
           </p>
         )}
 
-        <Box sx={{minWidth:120}}>
+        {/* <Box sx={{ minWidth: 120 }}> */}
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            label="Date"
-            value={formik.values.date}
-            onChange={(value) => formik.setFieldValue("date", value)}
-            slots={{
-              textField: (params) => <TextField {...params} />,
-            }}
-          />
+          <DemoContainer components={["DatePicker"]}>
+            <DatePicker
+              label="Date"
+              value={dayjs(formik.values.date)}
+              onChange={formik.handleChange}
+            />
+          </DemoContainer>
         </LocalizationProvider>
-        </Box>
-        
+        {/* </Box> */}
 
-        <Button type="submit" variant="contained">Submit</Button>
+        <Button type="submit" variant="contained">
+          Submit
+        </Button>
       </Box>
     </div>
   );

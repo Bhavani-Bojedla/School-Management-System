@@ -100,6 +100,7 @@ export default function Class() {
   }, [message]);
   return (
     <div>
+      {message && <MessageSnackbar message={message} messageType={messageType} handleClose={handleMessageClose} />}
       <h1>Class</h1>
       {message && (
         <MessageSnackbar

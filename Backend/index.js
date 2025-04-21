@@ -11,6 +11,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieparser());
 
+
+
+app.get("/",(req,res)=>{
+  res.send("hello")
+})
+
 //routers
 const schoolRouter = require("./routers/schoolRouters");
 const classRouter=require("./routers/classRouters")

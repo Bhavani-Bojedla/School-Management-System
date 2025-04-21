@@ -20,7 +20,7 @@ import { periodSchema } from "../../../yupSchema/periodSchema";
 import dayjs from "dayjs";
 import MessageSnackbar from "../../../Basic utitlity compoenents/SnackBar/MessageSnackbar";
 
-export default function ScheduleEvents({ selectedClass }) {
+export default function ScheduleEvents({ selectedClass,handleEventClose ,handleMessageNew,handleNewEvent}) {
   const Periods = [
     {
       id: 1,
@@ -67,11 +67,6 @@ export default function ScheduleEvents({ selectedClass }) {
     periods: "",
     date: new Date(),
   };
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("success");
-  const handleMessageClose = () => {
-    setMessage("");
-  };
 
   const formik = useFormik({
     initialValues,
@@ -80,6 +75,7 @@ export default function ScheduleEvents({ selectedClass }) {
       let date = values.date;
       let startTime = values.periods.split(",")[0];
       let endTime = values.periods.split(",")[1];
+      console.log(values)
       axios
         .post(`${baseApi}/schedule/create`, {
           ...values,
@@ -88,20 +84,26 @@ export default function ScheduleEvents({ selectedClass }) {
             date.setHours(startTime.split(":")[0], startTime.split(":")[1])
           ),
           endTime: new Date(
-            date.setHours(startTime.split(":")[0], startTime.split(":")[1])
+            date.setHours(endTime.split(":")[0], endTime.split(":")[1])
           ),
         })
         .then((resp) => {
           console.log("response", resp);
-          setMessage(resp.data.message);
-          setMessageType("success")
+          const newEvent = {
+            id: resp.data.newSchedule._id, // Assuming API returns new schedule ID
+            title: `Sub: ${resp.data.newSchedule.subject.subject_name}, Teacher: ${resp.data.newSchedule.teacher.name}`,
+            start: new Date(resp.data.newSchedule.startTime),
+            end: new Date(resp.data.newSchedule.endTime),
+          };
+          console.log(newEvent)
+          handleNewEvent(newEvent);
           formik.resetForm();
-
+          handleEventClose();
+          handleMessageNew(resp.data.message,"success");
         })
         .catch((e) => {
-          console.log(e)
-          setMessage("Error in creation of schedule");
-          setMessageType("error");
+          console.log("error",e)
+          handleMessageNew("Error in creation of Schedule","error");
     });
     },
   });
@@ -126,7 +128,7 @@ export default function ScheduleEvents({ selectedClass }) {
   }, []);
   return (
     <div>
-      {message && <MessageSnackbar message={message} messageType={messageType} handleClose={handleMessageClose} />}
+      {/* {message && <MessageSnackbar message={message} messageType={messageType} handleClose={handleMessageClose} />} */}
       
       <div>Schedule Event</div>
       <Box
@@ -231,9 +233,11 @@ export default function ScheduleEvents({ selectedClass }) {
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DemoContainer components={["DatePicker"]}>
             <DatePicker
-              label="Date"
-              value={dayjs(formik.values.date)}
-              onChange={formik.handleChange}
+               label="Date"
+               value={formik.values.date ? dayjs(formik.values.date) : null}
+               onChange={(newValue) => {
+                 formik.setFieldValue("date", newValue ? newValue.toDate() : null);
+               }}
             />
           </DemoContainer>
         </LocalizationProvider>

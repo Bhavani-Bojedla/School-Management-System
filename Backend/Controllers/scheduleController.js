@@ -12,16 +12,19 @@ const createSchedule = async (req, res) => {
       subject: req.body.subjects,
       class: req.body.selectedClass,
     });
- 
+    console.log(newSchedule)
     await newSchedule.save();
+    const populatedSchedule = await newSchedule.populate("teacher").populate("subject");
     res.status(200).json({
       success: true,
       message: "Successfully created the Schedule",
+      newSchedule:populatedSchedule
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: "server error in creating Schedule",
+      error: error.message, 
     });
   }
 };
@@ -65,10 +68,11 @@ const deleteSchedule = async (req, res) => {
 };
 
 const getScheduleWithClass = async (req, res) => {
+  console.log(req.params.id)
   try {
     const classId = req.params.id;
     const schoolId = req.user.schoolId;
-    const Schedules = await Schedule.find({ school: schoolId, class: classId });
+    const Schedules = await Schedule.find({ school: schoolId, class: classId }).populate("teacher").populate("subject");
     res.status(200).json({
       success: true,
       message: "Successfully in fetching the Schedule with class",
@@ -79,6 +83,7 @@ const getScheduleWithClass = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "server error in getting schedule of a class",
+
     });
   }
 };

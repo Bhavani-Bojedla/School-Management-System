@@ -15,14 +15,28 @@ import { useFormik } from "formik";
 import { periodSchema } from "../../../yupSchema/periodSchema";
 import axios from "axios";
 import { baseApi } from "../../../Environment";
+import MessageSnackbar from "../../../Basic utitlity compoenents/SnackBar/MessageSnackbar";
 
 const localizer = momentLocalizer(moment);
 
 export default function Schedule() {
   const date = new Date();
+  const [view, setView] = useState("week"); // Default is week view
+
   const [newPeriod, setNewperiod] = useState(false);
   const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null);
+
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("success");
+  const handleMessageClose = () => {
+    setMessage("");
+  };
+  const handleMessageNew=(msg,type)=>{
+        setMessage(msg);
+          setMessageType(type)
+  }
+  
   const myEventsList = [
     {
       id: 1,
@@ -38,6 +52,10 @@ export default function Schedule() {
     },
   ];
 
+   const [events,setEvents]=useState(myEventsList);
+  const handleEventClose=()=>{
+      setNewperiod(false);
+  }
   useEffect(() => {
     axios
       .get(`${baseApi}/class/all`)
@@ -50,9 +68,40 @@ export default function Schedule() {
       });
   }, []);
 
+
+  useEffect(() => {
+    if(selectedClass){
+    axios
+      .get(`${baseApi}/schedule/fetch-with-class/${selectedClass}`)
+      .then((res) => {
+        console.log(res)
+        const respdata=res.data.data.map(x=>{
+          console.log(new Date(x.startTime))
+          return ({
+            id:x._id,
+            title:`Sub: ${x.subject.subject_name}, Teacher:${x.teacher.name}`,
+            start:new Date(x.startTime),
+            end:new Date(x.endTime)
+          })
+        })
+        
+        setEvents(respdata);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  }}, [selectedClass]);
+
+  const handleNewEvent = (newEvent) => {
+    setEvents((prevEvents) => [...prevEvents, newEvent]); // Append new event
+  };
+  
+ 
   return (
     <>
       <h1>Schedule</h1>
+      {message && <MessageSnackbar message={message} messageType={messageType} handleClose={handleMessageClose} />}
+            
       <FormControl >
          <Typography variant="h5">Class</Typography>
         <Select
@@ -74,7 +123,7 @@ export default function Schedule() {
       </FormControl>
 
       <Button onClick={() => setNewperiod(true)}>Add new period</Button>
-      {newPeriod && <ScheduleEvents selectedClass={selectedClass}/>}
+      {newPeriod && <ScheduleEvents selectedClass={selectedClass} handleEventClose={handleEventClose}  handleMessageNew={handleMessageNew} handleNewEvent={handleNewEvent}/>}
       <div style={{ height: "100vh", width: "100%" }}>
         <Calendar
           defaultView="week"
@@ -83,7 +132,7 @@ export default function Schedule() {
           timeslots={1}
           min={new Date(1970, 1, 1, 10, 0, 0)}
           localizer={localizer}
-          events={myEventsList}
+          events={events}
           startAccessor="start"
           endAccessor="end"
           max={new Date(1970, 1, 1, 17, 0, 0)}

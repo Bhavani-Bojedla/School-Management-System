@@ -1,5 +1,4 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import Attendance from './school/components/attendance/Attendance'
 import Class from './school/components/class/Class'
 import Dashboard from './school/components/dashboard/Dashboard'
 import Examinations from './school/components/examinations/Examinations'
@@ -27,6 +26,8 @@ import ExaminationStudents from './student/components/examinations/ExaminationSt
 import NoticeStudents from './student/components/notice/NoticeStudents'
 import ProtectedRoute from './Gaurd/ProtectedRoute'
 import { AuthProvider } from './context/AuthContext'
+import AttendanceStudentList from './school/components/attendance/AttendanceStudentList'
+import AttendanceDetails from './school/components/attendance/AttendanceDetails'
 
 function App() {
 
@@ -38,7 +39,8 @@ function App() {
         {/* SCHOOL ROUTE */}
          <Route path='school' element={<ProtectedRoute allowedRoles={['SCHOOL']}><School/></ProtectedRoute>}>
             <Route index element={<Dashboard/>}/>
-            <Route path='attendance' element={<Attendance/>}/>
+            <Route path='attendance' element={<AttendanceStudentList/>}/>
+            <Route path='attendance/:id' element={<AttendanceDetails/>}/>
             <Route path='class' element={<Class/>}/>
             <Route path='dashboard' element={<Dashboard/>}/>
             <Route path='examinations' element={<Examinations/>}/>

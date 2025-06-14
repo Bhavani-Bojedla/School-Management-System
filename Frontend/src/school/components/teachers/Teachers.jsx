@@ -145,7 +145,7 @@ export default function Teachers() {
   };
   React.useEffect(() => {
     axios
-      .get(`${baseApi}/teacher/all`, { params })
+      .get(`${baseApi}/teacher/fetch-with-query`, { params })
       .then((res) => {
         setTeachers(res.data.teachers);
       })

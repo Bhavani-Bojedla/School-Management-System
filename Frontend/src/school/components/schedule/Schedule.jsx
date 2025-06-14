@@ -53,8 +53,19 @@ export default function Schedule() {
   ];
 
    const [events,setEvents]=useState(myEventsList);
+
+  
   const handleEventClose=()=>{
       setNewperiod(false);
+      setEdit(false);
+      setSelectedEventId(null);
+  }
+ const [edit,setEdit]=useState(false);
+ const [selectedEventId,setSelectedEventId]=useState(null);
+  const handleSelectEvent=(e)=>{
+    setEdit(true);
+    setSelectedEventId(e.id);
+    console.log(e)
   }
   useEffect(() => {
     axios
@@ -74,9 +85,9 @@ export default function Schedule() {
     axios
       .get(`${baseApi}/schedule/fetch-with-class/${selectedClass}`)
       .then((res) => {
-        console.log(res)
+        // console.log(res)
         const respdata=res.data.data.map(x=>{
-          console.log(new Date(x.startTime))
+          // console.log(new Date(x.startTime))
           return ({
             id:x._id,
             title:`Sub: ${x.subject.subject_name}, Teacher:${x.teacher.name}`,
@@ -92,10 +103,21 @@ export default function Schedule() {
       });
   }}, [selectedClass]);
 
+  // const handleNewEvent = (newEvent) => {
+  //   setEvents((prevEvents) => [...prevEvents, newEvent]); // Append new event
+  // };.
   const handleNewEvent = (newEvent) => {
-    setEvents((prevEvents) => [...prevEvents, newEvent]); // Append new event
-  };
-  
+  setEvents((prevEvents) => {
+    // Remove old event if updating
+    const updatedEvents = prevEvents.filter(event => event.id !== newEvent.id);
+    return [...updatedEvents, newEvent]; // Add new/updated event
+  });
+};
+
+  const handleDeleteEvent = (eventId) => {
+  setEvents((prevEvents) => prevEvents.filter((e) => e.id !== eventId));
+};
+
  
   return (
     <>
@@ -123,7 +145,7 @@ export default function Schedule() {
       </FormControl>
 
       <Button onClick={() => setNewperiod(true)}>Add new period</Button>
-      {newPeriod && <ScheduleEvents selectedClass={selectedClass} handleEventClose={handleEventClose}  handleMessageNew={handleMessageNew} handleNewEvent={handleNewEvent}/>}
+      {(newPeriod || edit) && <ScheduleEvents selectedClass={selectedClass} handleEventClose={handleEventClose}  handleMessageNew={handleMessageNew} handleNewEvent={handleNewEvent} edit={edit} selectedEventId={selectedEventId} handleDeleteEvent={handleDeleteEvent}/>}
       <div style={{ height: "100vh", width: "100%" }}>
         <Calendar
           defaultView="week"
@@ -135,6 +157,7 @@ export default function Schedule() {
           events={events}
           startAccessor="start"
           endAccessor="end"
+          onSelectEvent={handleSelectEvent}
           max={new Date(1970, 1, 1, 17, 0, 0)}
           defaultDate={date}
           showMultiDayTimes

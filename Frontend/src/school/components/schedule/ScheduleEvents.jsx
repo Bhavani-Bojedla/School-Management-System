@@ -5,22 +5,28 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  TextField,
   Typography,
 } from "@mui/material";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { Formik, useFormik } from "formik";
+import { useFormik } from "formik";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { baseApi } from "../../../Environment";
 import { periodSchema } from "../../../yupSchema/periodSchema";
 import dayjs from "dayjs";
-import MessageSnackbar from "../../../Basic utitlity compoenents/SnackBar/MessageSnackbar";
 
-export default function ScheduleEvents({ selectedClass,handleEventClose ,handleMessageNew,handleNewEvent}) {
+export default function ScheduleEvents({
+  selectedClass,
+  handleEventClose,
+  handleMessageNew,
+  handleNewEvent,
+  edit,
+  selectedEventId,
+  handleDeleteEvent
+}) {
   const Periods = [
     {
       id: 1,
@@ -59,8 +65,31 @@ export default function ScheduleEvents({ selectedClass,handleEventClose ,handleM
       endTime: "16:00",
     },
   ];
+
+  const handleDelete = () => {
+    if (confirm("Are you sure you want to delete?")) {
+      axios
+        .delete(`${baseApi}/schedule/delete/${selectedEventId}`)
+        .then((res) => {
+          handleDeleteEvent(selectedEventId)
+          handleMessageNew(res.data.message, "success");
+          handleCancel();
+        })
+        .catch((e) => {
+          console.log("Error", e);
+          handleMessageNew("Error in delete Schedule.", "error");
+        });
+    }
+  };
+
+  const handleCancel = () => {
+    formik.resetForm();
+    handleEventClose();
+  };
+
   const [Teachers, setTeachers] = useState([]);
   const [Subjects, setSubjects] = useState([]);
+
   const initialValues = {
     teachers: "",
     subjects: "",
@@ -72,50 +101,51 @@ export default function ScheduleEvents({ selectedClass,handleEventClose ,handleM
     initialValues,
     validationSchema: periodSchema,
     onSubmit: (values) => {
-      let date = values.date;
-      let startTime = values.periods.split(",")[0];
-      let endTime = values.periods.split(",")[1];
-      console.log(values)
-      axios
-        .post(`${baseApi}/schedule/create`, {
-          ...values,
-          selectedClass,
-          startTime: new Date(
-            date.setHours(startTime.split(":")[0], startTime.split(":")[1])
-          ),
-          endTime: new Date(
-            date.setHours(endTime.split(":")[0], endTime.split(":")[1])
-          ),
-        })
+      let [startHour, startMinute] = values.periods.split(",")[0].split(":");
+      let [endHour, endMinute] = values.periods.split(",")[1].split(":");
+      const startDate = new Date(values.date);
+      startDate.setHours(startHour, startMinute, 0, 0);
+
+      const endDate = new Date(values.date);
+      endDate.setHours(endHour, endMinute, 0, 0);
+
+      let BACKEND_URL = `${baseApi}/schedule/create`;
+      let method = "post";
+
+      if (edit) {
+        BACKEND_URL = `${baseApi}/schedule/update/${selectedEventId}`;
+        method = "put";
+      }
+
+      axios[method](BACKEND_URL, {
+        ...values,
+        selectedClass,
+        startTime: startDate,
+        endTime: endDate,
+      })
         .then((resp) => {
-          console.log("response", resp);
           const newEvent = {
-            id: resp.data.newSchedule._id, // Assuming API returns new schedule ID
+            id: resp.data.newSchedule._id,
             title: `Sub: ${resp.data.newSchedule.subject.subject_name}, Teacher: ${resp.data.newSchedule.teacher.name}`,
             start: new Date(resp.data.newSchedule.startTime),
             end: new Date(resp.data.newSchedule.endTime),
           };
-          console.log(newEvent)
           handleNewEvent(newEvent);
           formik.resetForm();
           handleEventClose();
-          handleMessageNew(resp.data.message,"success");
+          handleMessageNew(resp.data.message, "success");
         })
         .catch((e) => {
-          console.log("error",e)
-          handleMessageNew("Error in creation of Schedule","error");
-    });
+          console.log("error bl", e);
+          handleMessageNew("Error in creation of Schedule", "error");
+        });
     },
   });
 
   const fetchData = async () => {
     try {
-      const teacherResponse = await axios.get(`${baseApi}/teacher/all`, {
-        params: {},
-      });
-      const subjectResponse = await axios.get(`${baseApi}/subject/all`, {
-        params: {},
-      });
+      const teacherResponse = await axios.get(`${baseApi}/teacher/all`);
+      const subjectResponse = await axios.get(`${baseApi}/subject/all`);
       setTeachers(teacherResponse.data.teachers);
       setSubjects(subjectResponse.data.data);
     } catch (error) {
@@ -126,10 +156,36 @@ export default function ScheduleEvents({ selectedClass,handleEventClose ,handleM
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (selectedEventId) {
+      axios
+        .get(`${baseApi}/schedule/fetch/${selectedEventId}`)
+        .then((resp) => {
+          const scheduleData = resp.data.data;
+          formik.setFieldValue("teachers", scheduleData.teacher._id);
+          formik.setFieldValue("subjects", scheduleData.subject._id);
+
+          const start = new Date(scheduleData.startTime);
+          const end = new Date(scheduleData.endTime);
+          const periodValue = `${start.getHours()}:${start
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")},${end.getHours()}:${end
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}`;
+          formik.setFieldValue("periods", periodValue);
+          formik.setFieldValue("date", start);
+        })
+        .catch((e) => {
+          console.log("Error", e);
+        });
+    }
+  }, [selectedEventId]);
+
   return (
     <div>
-      {/* {message && <MessageSnackbar message={message} messageType={messageType} handleClose={handleMessageClose} />} */}
-      
       <div>Schedule Event</div>
       <Box
         component="form"
@@ -147,10 +203,11 @@ export default function ScheduleEvents({ selectedClass,handleEventClose ,handleM
         onSubmit={formik.handleSubmit}
       >
         <Typography variant="h4" sx={{ textAlign: "center" }}>
-          Add New Period
+          {edit ? "Edit Period" : "Add New Period"}
         </Typography>
+
         <FormControl fullWidth>
-          <InputLabel id="demo-simple-select-label">Teachers</InputLabel>
+          <InputLabel>Teachers</InputLabel>
           <Select
             value={formik.values.teachers}
             label="Teacher"
@@ -158,14 +215,11 @@ export default function ScheduleEvents({ selectedClass,handleEventClose ,handleM
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
           >
-            {Teachers &&
-              Teachers.map((item) => {
-                return (
-                  <MenuItem key={item._id} value={item._id}>
-                    {item.name}
-                  </MenuItem>
-                );
-              })}
+            {Teachers.map((item) => (
+              <MenuItem key={item._id} value={item._id}>
+                {item.name}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
         {formik.touched.teachers && formik.errors.teachers && (
@@ -175,7 +229,7 @@ export default function ScheduleEvents({ selectedClass,handleEventClose ,handleM
         )}
 
         <FormControl fullWidth>
-          <InputLabel id="demo-simple-select-label">Subjects</InputLabel>
+          <InputLabel>Subjects</InputLabel>
           <Select
             value={formik.values.subjects}
             label="Subjects"
@@ -183,17 +237,13 @@ export default function ScheduleEvents({ selectedClass,handleEventClose ,handleM
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
           >
-            {Subjects &&
-              Subjects.map((item) => {
-                return (
-                  <MenuItem key={item._id} value={item._id}>
-                    {item.subject_name}
-                  </MenuItem>
-                );
-              })}
+            {Subjects.map((item) => (
+              <MenuItem key={item._id} value={item._id}>
+                {item.subject_name}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
-
         {formik.touched.subjects && formik.errors.subjects && (
           <p style={{ color: "red", textTransform: "capitalize" }}>
             {formik.errors.subjects}
@@ -201,7 +251,7 @@ export default function ScheduleEvents({ selectedClass,handleEventClose ,handleM
         )}
 
         <FormControl fullWidth>
-          <InputLabel id="demo-simple-select-label">Periods</InputLabel>
+          <InputLabel>Periods</InputLabel>
           <Select
             value={formik.values.periods}
             label="Periods"
@@ -209,42 +259,63 @@ export default function ScheduleEvents({ selectedClass,handleEventClose ,handleM
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
           >
-            {Periods &&
-              Periods.map((item) => {
-                return (
-                  <MenuItem
-                    key={item.id}
-                    value={`${item.startTime}, ${item.endTime}`}
-                  >
-                    {item.label}
-                  </MenuItem>
-                );
-              })}
+            {Periods.map((item) => (
+              <MenuItem
+                key={item.id}
+                value={`${item.startTime},${item.endTime}`}
+              >
+                {item.label}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
-
         {formik.touched.periods && formik.errors.periods && (
           <p style={{ color: "red", textTransform: "capitalize" }}>
             {formik.errors.periods}
           </p>
         )}
 
-        {/* <Box sx={{ minWidth: 120 }}> */}
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DemoContainer components={["DatePicker"]}>
             <DatePicker
-               label="Date"
-               value={formik.values.date ? dayjs(formik.values.date) : null}
-               onChange={(newValue) => {
-                 formik.setFieldValue("date", newValue ? newValue.toDate() : null);
-               }}
+              label="Date"
+              format="DD/MM/YYYY"
+              value={formik.values.date ? dayjs(formik.values.date) : null}
+              onChange={(newValue) =>
+                formik.setFieldValue(
+                  "date",
+                  newValue ? newValue.toDate() : null
+                )
+              }
             />
           </DemoContainer>
         </LocalizationProvider>
-        {/* </Box> */}
 
-        <Button type="submit" variant="contained">
-          Submit
+        {/* Conditional Buttons */}
+        {!edit && (
+          <Button type="submit" variant="contained">
+            Submit
+          </Button>
+        )}
+
+        {edit && (
+          <>
+            <Button type="submit" variant="contained">
+              Update
+            </Button>
+            <Button
+              type="button"
+              variant="contained"
+              sx={{ background: "red" }}
+              onClick={handleDelete}
+            >
+              Delete
+            </Button>
+          </>
+        )}
+
+        <Button type="button" variant="outlined" onClick={handleCancel}>
+          Cancel
         </Button>
       </Box>
     </div>

@@ -3,6 +3,8 @@ const Exam = require("../models/examSchema");
 const Schedule = require("../models/scheduleSchema");
 
 const createSchedule = async (req, res) => {
+  // console.log("Incoming Request Body:", req.body);
+
   try {
     const newSchedule = new Schedule({
       school: req.user.schoolId,
@@ -12,9 +14,13 @@ const createSchedule = async (req, res) => {
       subject: req.body.subjects,
       class: req.body.selectedClass,
     });
-    console.log(newSchedule)
+    
     await newSchedule.save();
-    const populatedSchedule = await newSchedule.populate("teacher").populate("subject");
+    // const populatedSchedule = await newSchedule.populate("teacher").populate("subject");
+    const populatedSchedule = await Schedule.findById(newSchedule._id)
+  .populate("teacher")
+  .populate("subject");
+
     res.status(200).json({
       success: true,
       message: "Successfully created the Schedule",
@@ -29,15 +35,50 @@ const createSchedule = async (req, res) => {
   }
 };
 
+// const updateSchedule = async (req, res) => {
+//   try {
+//     let id = req.params.id;
+//     await Schedule.findOneAndUpdate({ _id: id }, { $set: { ...req.body } });
+//    const scheduleAfterupdate = await Schedule.findOne({ _id: id })
+//   .populate("teacher")
+//   .populate("subject");
+
+//     res.status(200).json({
+//       success: true,
+//       message: "Successfully updated the Schedule",
+//       newSchedule: scheduleAfterupdate,
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({
+//       success: false,
+//       message: "server error in updating Schedule",
+//     });
+//   }
+// };
+
 const updateSchedule = async (req, res) => {
   try {
     let id = req.params.id;
-    await Schedule.findOneAndUpdate({ _id: id }, { $set: { ...req.body } });
-    const scheduleAfterupdate = await Schedule.findOne({ _id: id });
+
+    const updatedFields = {
+      teacher: req.body.teachers,
+      subject: req.body.subjects,
+      startTime: req.body.startTime,
+      endTime: req.body.endTime,
+      class: req.body.selectedClass,
+    };
+
+    await Schedule.findOneAndUpdate({ _id: id }, { $set: updatedFields });
+
+    const scheduleAfterupdate = await Schedule.findOne({ _id: id })
+      .populate("teacher")
+      .populate("subject");
+
     res.status(200).json({
       success: true,
       message: "Successfully updated the Schedule",
-      data: scheduleAfterupdate,
+      newSchedule: scheduleAfterupdate,
     });
   } catch (error) {
     console.log(error);
@@ -47,6 +88,7 @@ const updateSchedule = async (req, res) => {
     });
   }
 };
+
 
 const deleteSchedule = async (req, res) => {
   try {
@@ -68,7 +110,7 @@ const deleteSchedule = async (req, res) => {
 };
 
 const getScheduleWithClass = async (req, res) => {
-  console.log(req.params.id)
+  // console.log(req.params.id)
   try {
     const classId = req.params.id;
     const schoolId = req.user.schoolId;
@@ -86,11 +128,39 @@ const getScheduleWithClass = async (req, res) => {
 
     });
   }
+
+ 
 };
+
+const getScheduleWithId = async (req, res) => {
+  // console.log(req.params.id)
+  try {
+    const id = req.params.id;
+    const schoolId = req.user.schoolId;
+
+    const scheduleData = await Schedule.findOne({ school: schoolId, _id: id })
+      .populate("teacher")
+      .populate("subject");
+  
+    res.status(200).json({
+      success: true,
+      message: "Successfully fetched the Schedule with ID",
+      data: scheduleData,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error in getting schedule by ID",
+    });
+  }
+};
+
 
 module.exports = {
   createSchedule,
   updateSchedule,
   deleteSchedule,
   getScheduleWithClass,
+  getScheduleWithId
 };

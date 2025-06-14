@@ -88,9 +88,28 @@ const getAllClasses=async(req,res)=>{
         console.log(error)
         res.status(500).json({
             success: false,
-            message: "server error in deleting class",
+            message: "server error in getting classes",
           });
     }
 }
 
-module.exports = {createClass,updateClass,deleteClass,getAllClasses };
+const getSingleClasses=async(req,res)=>{
+    try {
+        const schoolId=req.user.schoolId;
+        const classId=req.params.id;
+        const allClasses=await Class.findOne({school:schoolId,_id:classId}).populate("attendee")
+        res.status(200).json({
+            success: true,
+            message: "Successfully in fetching single class",
+            data:allClasses
+          });
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            success: false,
+            message: "server error in getting single class",
+          });
+    }
+}
+
+module.exports = {createClass,updateClass,deleteClass,getAllClasses,getSingleClasses };

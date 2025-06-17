@@ -18,6 +18,7 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import { Outlet, useNavigate } from "react-router-dom";
 import { SchoolnavArr } from "../NavbarLinks/Links";
+import LogoutIcon from '@mui/icons-material/Logout';
 
 const drawerWidth = 240;
 

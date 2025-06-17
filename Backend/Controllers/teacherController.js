@@ -59,6 +59,7 @@ const registerTeacher = async (req, res) => {
 };
 
 const loginTeacher = async (req, res) => {
+  
   try {
     const teacher = await Teacher.findOne({ email: req.body.email });
 
@@ -159,39 +160,39 @@ const getTeacherOwnData = async (req, res) => {
 };
 
 const getTeacherwithId = async (req, res) => {
-    try {
-      const id = req.params.id;
-      const schoolId = req.user.schoolId;
-      const teacher = await Teacher.findOne({ _id: id, school: schoolId }).select(
-        ["-password"]
-      );
-      if (teacher) {
-        res.status(200).json({
-          success: true,
-          teacher,
-        });
-      } else {
-        res.status(404).json({
-          success: false,
-          message: "Teacher not found",
-        });
-      }
-    } catch (error) {
-      res.status(500).json({
+  try {
+    const id = req.params.id;
+    const schoolId = req.user.schoolId;
+    const teacher = await Teacher.findOne({ _id: id, school: schoolId }).select(
+      ["-password"]
+    );
+    if (teacher) {
+      res.status(200).json({
+        success: true,
+        teacher,
+      });
+    } else {
+      res.status(404).json({
         success: false,
-        message: "Internal Server Error [own teacher Data]",
+        message: "Teacher not found",
       });
     }
-  };
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error [own teacher Data]",
+    });
+  }
+};
 
 const updateTeacher = async (req, res) => {
   try {
     const id = req.params.id;
-    const schoolId=req.user.schoolId;
+    const schoolId = req.user.schoolId;
     const form = new formidable.IncomingForm();
     form.parse(req, async (e, fields, files) => {
-      const teacher = await Teacher.findOne({ _id: id ,school:schoolId});
-      if (files.image) {   
+      const teacher = await Teacher.findOne({ _id: id, school: schoolId });
+      if (files.image) {
         const photo = files.image[0];
         let filepath = photo.filepath;
         let originalFilename = photo.originalFilename.replace(" ", "_");
@@ -219,10 +220,10 @@ const updateTeacher = async (req, res) => {
           teacher[field] = fields[field][0];
         });
         teacher.teacher_img = originalFilename;
-        if(fields.password){
+        if (fields.password) {
           const salt = bcrypt.genSaltSync(10);
           const hashpassword = bcrypt.hashSync(fields.password[0], salt);
-          teacher.password=hashpassword
+          teacher.password = hashpassword;
         }
       } else {
         Object.keys(fields).forEach((field) => {
@@ -238,30 +239,30 @@ const updateTeacher = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
-      success: false, 
+      success: false,
       message: "Teacher creation is failed",
     });
   }
 };
 
-const deleteTeacher=async(req,res)=>{
-     try {
-        const id=req.params.id;
-        const schoolId=req.user.schoolId;
-        await Teacher.findByIdAndDelete({_id:id,school:schoolId});
-        const teachers= await Teacher.find({school:schoolId});
-        res.status(200).json({
-            success: true,
-            message: "Teacher deleted successfully",
-            teachers,
-          });
-     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Teacher deletion is failed",
-          });
-     }
-}
+const deleteTeacher = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const schoolId = req.user.schoolId;
+    await Teacher.findByIdAndDelete({ _id: id, school: schoolId });
+    const teachers = await Teacher.find({ school: schoolId });
+    res.status(200).json({
+      success: true,
+      message: "Teacher deleted successfully",
+      teachers,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Teacher deletion is failed",
+    });
+  }
+};
 
 module.exports = {
   registerTeacher,
@@ -270,5 +271,5 @@ module.exports = {
   getTeacherwithId,
   getTeacherOwnData,
   updateTeacher,
-  deleteTeacher
+  deleteTeacher,
 };

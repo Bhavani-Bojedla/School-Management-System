@@ -137,7 +137,7 @@ export default function Schedule() {
             classes.map((item) => {
               return (
                 <MenuItem key={item._id} value={item._id}>
-                  {item.class_text} [{item.class_num}]
+                  {item.class_text}
                 </MenuItem>
               );
             })}

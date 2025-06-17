@@ -24,6 +24,8 @@ export const AuthProvider=({children})=>{
     setuser(credentials)
    }
    const logout=()=>{
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setautheticated(false);
     setuser(null);
    }

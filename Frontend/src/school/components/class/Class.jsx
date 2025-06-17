@@ -16,7 +16,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import MessageSnackbar from "../../../Basic utitlity compoenents/SnackBar/MessageSnackbar";
 
 export default function Class() {
-  const [editId,setEditId]=useState();
+  const [editId, setEditId] = useState();
   const [classes, setClasses] = useState([]);
   const [edit, setedit] = useState(false);
   const [message, setMessage] = React.useState("");
@@ -50,6 +50,7 @@ export default function Class() {
 
   const cancelEdit = () => {
     setedit(false);
+    setEditId(null);
     formik.resetForm();
   };
   const formik = useFormik({
@@ -58,7 +59,7 @@ export default function Class() {
     onSubmit: (values) => {
       if (edit) {
         axios
-          .patch(`${baseApi}/class/update/${editId}`,{...values})
+          .patch(`${baseApi}/class/update/${editId}`, { ...values })
           .then((res) => {
             console.log(res);
             setMessage(res.data.message);
@@ -100,7 +101,13 @@ export default function Class() {
   }, [message]);
   return (
     <div>
-      {message && <MessageSnackbar message={message} messageType={messageType} handleClose={handleMessageClose} />}
+      {message && (
+        <MessageSnackbar
+          message={message}
+          messageType={messageType}
+          handleClose={handleMessageClose}
+        />
+      )}
       <h1>Class</h1>
       {message && (
         <MessageSnackbar
@@ -166,13 +173,13 @@ export default function Class() {
             {formik.errors.class_num}
           </p>
         )}
-        <Button sx={{width:'120px'}} variant="contained" type="submit">
+        <Button sx={{ width: "120px" }} variant="contained" type="submit">
           Submit
         </Button>
 
         {edit && (
           <Button
-          sx={{width:'120px'}}
+            sx={{ width: "120px" }}
             onClick={() => {
               cancelEdit();
             }}

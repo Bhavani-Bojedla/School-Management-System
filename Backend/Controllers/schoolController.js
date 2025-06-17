@@ -110,7 +110,7 @@ const getSchools = async (req, res) => {
   try {
     const schools = await school
       .find()
-      .select(["-password", "-_id", "-email",  "-createdAt"]);
+      .select(["-password", "-_id", "-email", "-createdAt"]);
     res.status(200).json({
       success: true,
       message: "Succcess in fetching all schools.",
@@ -180,9 +180,9 @@ const updateSchool = async (req, res) => {
         Object.keys(fields).forEach((field) => {
           School[field] = fields[field][0];
         });
-        School.school_img=originalFilename
-      }else{
-        School['school_name']=fields.school_name[0]
+        School.school_img = originalFilename;
+      } else {
+        School["school_name"] = fields.school_name[0];
       }
       await School.save();
       res.status(200).json({

@@ -41,19 +41,67 @@ export default function Examinations() {
     setMessage(msg);
     setMessageType(type);
   };
+
+  const dateFormat = (dateDate) => {
+    const date = new Date(dateDate);
+    const dateHours = date.getHours();
+    const dateMinutes = date.getMinutes();
+    return (
+      date.getDate() + "-" + (+date.getMonth() + 1) + "-" + date.getFullYear()
+    );
+  };
   const initialValues = {
     date: "",
     subject: "",
     examType: "",
   };
-
+  const [openAdd, setopenAdd] = React.useState(false);
+  const handleAddExam = () => {
+    setopenAdd(true);
+  };
+  const handleAddCancel = () => {
+    setopenAdd(false);
+  };
+  const [editId, setEditId] = React.useState(null);
+  const handleEdit = (id) => {
+    setEditId(id);
+    const selectExamination = examinations.filter((x) => x._id === id);
+    formik.setFieldValue("date", selectExamination[0].exam_date);
+    formik.setFieldValue("subject", selectExamination[0].subject._id);
+    formik.setFieldValue("examType", selectExamination[0].exam_type);
+  };
+  const handleEditCancel = () => {
+    setEditId(null);
+    formik.resetForm();
+    setopenAdd(false);
+  };
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete")) {
+      try {
+        const response = await axios.delete(
+          `${baseApi}/examination/delete/${id}`
+        );
+        console.log("delete exam", response);
+        setMessage(response.data.message);
+        setMessageType("success");
+      } catch (e) {
+        setMessage("Error in deleting examination");
+        setMessageType("error");
+        console.log("Error in deleting examination. Examination component", e);
+      }
+    }
+  };
   const formik = useFormik({
     initialValues: initialValues,
     validationSchema: examinationSchema,
     onSubmit: async (value) => {
       try {
+        let URL = `${baseApi}/examination/create`;
+        if (editId) {
+          URL = `${baseApi}/examination/update/${editId}`;
+        }
         console.log("Examination", value);
-        const response = await axios.post(`${baseApi}/examination/create`, {
+        const response = await axios.post(URL, {
           date: value.date,
           subjectId: value.subject,
           classId: selectedClass,
@@ -62,6 +110,10 @@ export default function Examinations() {
         setMessage(response.data.message);
         setMessageType("success");
         formik.resetForm();
+        if (editId) {
+          setEditId(null);
+          setopenAdd(false);
+        }
         console.log("response new exam", response);
       } catch (e) {
         setMessage("Error in saving new examination");
@@ -84,12 +136,13 @@ export default function Examinations() {
       const response = await axios.get(`${baseApi}/class/all`);
       console.log("Examination Classes", response);
       setClasses(response.data.data);
+      setSelectedClass(response.data.data[0]._id);
     } catch (e) {
       console.log("Error in Classes. Examination component", e);
     }
   };
   const fetchExaminations = async () => {
-    try { 
+    try {
       console.log("id", selectedClass);
       if (selectedClass) {
         const response = await axios.get(
@@ -102,10 +155,11 @@ export default function Examinations() {
       console.log("Error in fetching examinations", error);
     }
   };
-
   React.useEffect(() => {
-    fecthSubjects();
     fecthClasses();
+    fecthSubjects();
+  }, []);
+  React.useEffect(() => {
     fetchExaminations();
   }, [message, selectedClass]);
 
@@ -150,73 +204,95 @@ export default function Examinations() {
           onSubmit={formik.handleSubmit}
           sx={{ width: "26vw", margin: "auto", minWidth: "310px" }}
         >
-          <Typography variant="h4">Add New Exam</Typography>
-          <LocalizationProvider dateAdapter={AdapterDayjs} fullWidth>
-            <DemoContainer components={["DatePicker"]} fullWidth>
-              <DatePicker
+          {(openAdd || editId) && (
+            <>
+              <Typography variant="h4">
+                {editId ? "Edit Exam" : "Add New Exam"}
+              </Typography>
+              <LocalizationProvider dateAdapter={AdapterDayjs} fullWidth>
+                <DemoContainer components={["DatePicker"]} fullWidth>
+                  <DatePicker
+                    fullWidth
+                    label="Date"
+                    format="DD/MM/YYYY"
+                    value={
+                      formik.values.date ? dayjs(formik.values.date) : null
+                    }
+                    onChange={(newValue) =>
+                      formik.setFieldValue(
+                        "date",
+                        newValue ? newValue.toDate() : null
+                      )
+                    }
+                  />
+                </DemoContainer>
+              </LocalizationProvider>
+              {formik.touched.date && formik.errors.date && (
+                <p style={{ color: "red", textTransform: "capitalize" }}>
+                  {formik.errors.date}
+                </p>
+              )}
+              <FormControl sx={{ marginTop: "10px" }} fullWidth>
+                <InputLabel id="demo-simple-select-label">Subject</InputLabel>
+                <Select
+                  fullWidth
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  name="subject"
+                  id="filled-basic"
+                  label="Subject"
+                  value={formik.values.subject}
+                >
+                  <MenuItem value={""}>Select Subject</MenuItem>
+                  {subjects.map((subject) => {
+                    return (
+                      <MenuItem value={subject._id} key={subject._id}>
+                        {subject.subject_name}
+                      </MenuItem>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+              {formik.touched.subject && formik.errors.subject && (
+                <p style={{ color: "red", textTransform: "capitalize" }}>
+                  {formik.errors.subject}
+                </p>
+              )}
+              <TextField
                 fullWidth
-                label="Date"
-                format="DD/MM/YYYY"
-                value={formik.values.date ? dayjs(formik.values.date) : null}
-                onChange={(newValue) =>
-                  formik.setFieldValue(
-                    "date",
-                    newValue ? newValue.toDate() : null
-                  )
-                }
+                sx={{ marginTop: "10px" }}
+                name="examType"
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                label="Exam Type"
+                variant="filled"
+                value={formik.values.examType}
               />
-            </DemoContainer>
-          </LocalizationProvider>
-          {formik.touched.date && formik.errors.date && (
-            <p style={{ color: "red", textTransform: "capitalize" }}>
-              {formik.errors.date}
-            </p>
-          )}
-          <FormControl sx={{ marginTop: "10px" }} fullWidth>
-            <InputLabel id="demo-simple-select-label">Subject</InputLabel>
-            <Select
-              fullWidth
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              name="subject"
-              id="filled-basic"
-              label="Subject"
-              value={formik.values.subject}
-            >
-              <MenuItem value={""}>Select Subject</MenuItem>
-              {subjects.map((subject) => {
-                return (
-                  <MenuItem value={subject._id} key={subject._id}>
-                    {subject.subject_name}
-                  </MenuItem>
-                );
-              })}
-            </Select>
-          </FormControl>
-          {formik.touched.subject && formik.errors.subject && (
-            <p style={{ color: "red", textTransform: "capitalize" }}>
-              {formik.errors.subject}
-            </p>
-          )}
-          <TextField
-            fullWidth
-            sx={{ marginTop: "10px" }}
-            name="examType"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            label="Exam Type"
-            variant="filled"
-            value={formik.values.examType}
-          />
-          {formik.touched.examType && formik.errors.examType && (
-            <p style={{ color: "red", textTransform: "capitalize" }}>
-              {formik.errors.examType}
-            </p>
-          )}
+              {formik.touched.examType && formik.errors.examType && (
+                <p style={{ color: "red", textTransform: "capitalize" }}>
+                  {formik.errors.examType}
+                </p>
+              )}
+              <Box  sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
+              <Button
+                sx={{ marginTop: "10px" }}
+                type="submit"
+                variant="contained"
+              >
+                Submit
+              </Button>
 
-          <Button sx={{ marginTop: "10px" }} type="submit" variant="contained">
-            Submit
-          </Button>
+              <Button
+                sx={{ marginTop: "10px" }}
+                onClick={editId ? handleEditCancel : handleAddCancel}
+                type="button"
+                variant="outlined"
+              >
+                Cancel
+              </Button>
+              </Box>
+            </>
+          )}
         </Box>
       </Paper>
       <TableContainer component={Paper}>
@@ -236,16 +312,43 @@ export default function Examinations() {
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
               >
                 <TableCell align="right" component="th" scope="row">
-                  {examination.exam_date}
+                  {dateFormat(examination.exam_date)}
                 </TableCell>
-                <TableCell align="right">{examination.subject}</TableCell>
+                <TableCell align="right">
+                  {examination.subject ? examination.subject.subject_name : ""}
+                </TableCell>
                 <TableCell align="right">{examination.exam_type}</TableCell>
-                <TableCell align="right">"Actions</TableCell>
+                <TableCell align="right">
+                  <Box
+                    sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}
+                  >
+                    <Button
+                      variant="contained"
+                      sx={{ background: "skyblue" }}
+                      onClick={() => handleEdit(examination._id)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="contained"
+                      sx={{ background: "tomato" }}
+                      onClick={() => handleDelete(examination._id)}
+                    >
+                      Delete
+                    </Button>
+                  </Box>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Box sx={{ display: "flex", justifyContent: "center", marginTop: 2 }}>
+        <Button variant="contained" onClick={handleAddExam}>
+          Add New Exam
+        </Button>
+      </Box>
     </>
   );
 }

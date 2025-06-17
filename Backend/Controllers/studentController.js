@@ -123,7 +123,9 @@ const getStudents = async (req, res) => {
     if (req.query.hasOwnProperty("student_class")) {
       filterQuery["student_class"] = req.query.student_class;
     }
-    const students = await Student.find(filterQuery).select(["-password"]).populate({path: "student_class",select: "class_text class_num", });
+    const students = await Student.find(filterQuery)
+      .select(["-password"])
+      .populate({ path: "student_class", select: "class_text class_num" });
     res.status(200).json({
       success: true,
       message: "Succcess in fetching all students.",
@@ -164,39 +166,39 @@ const getStudentOwnData = async (req, res) => {
 };
 
 const getStudentwithId = async (req, res) => {
-    try {
-      const id = req.params.id;
-      const schoolId = req.user.schoolId;
-      const student = await Student.findOne({ _id: id, school: schoolId }).select(
-        ["-password"]
-      );
-      if (student) {
-        res.status(200).json({
-          success: true,
-          student,
-        });
-      } else {
-        res.status(404).json({
-          success: false,
-          message: "Student not found",
-        });
-      }
-    } catch (error) {
-      res.status(500).json({
+  try {
+    const id = req.params.id;
+    const schoolId = req.user.schoolId;
+    const student = await Student.findOne({ _id: id, school: schoolId }).select(
+      ["-password"]
+    );
+    if (student) {
+      res.status(200).json({
+        success: true,
+        student,
+      });
+    } else {
+      res.status(404).json({
         success: false,
-        message: "Internal Server Error [own student Data]",
+        message: "Student not found",
       });
     }
-  };
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error [own student Data]",
+    });
+  }
+};
 
 const updateStudent = async (req, res) => {
   try {
     const id = req.params.id;
-    const schoolId=req.user.schoolId;
+    const schoolId = req.user.schoolId;
     const form = new formidable.IncomingForm();
     form.parse(req, async (e, fields, files) => {
-      const student = await Student.findOne({ _id: id,school:schoolId });
-      if (files.image) {   
+      const student = await Student.findOne({ _id: id, school: schoolId });
+      if (files.image) {
         const photo = files.image[0];
         let filepath = photo.filepath;
         let originalFilename = photo.originalFilename.replace(" ", "_");
@@ -224,10 +226,10 @@ const updateStudent = async (req, res) => {
           student[field] = fields[field][0];
         });
         student.student_img = originalFilename;
-        if(fields.password){
+        if (fields.password) {
           const salt = bcrypt.genSaltSync(10);
           const hashpassword = bcrypt.hashSync(fields.password[0], salt);
-          student.password=hashpassword
+          student.password = hashpassword;
         }
       } else {
         Object.keys(fields).forEach((field) => {
@@ -244,30 +246,30 @@ const updateStudent = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
-      success: false, 
+      success: false,
       message: "Student creation is failed",
     });
   }
 };
 
-const deleteStudent=async(req,res)=>{
-     try {
-        const id=req.params.id;
-        const schoolId=req.user.schoolId;
-        await Student.findByIdAndDelete({_id:id,school:schoolId});
-        const students= await Student.find({school:schoolId});
-        res.status(200).json({
-            success: true,
-            message: "Student deleted successfully",
-            students,
-          });
-     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Student deletion is failed",
-          });
-     }
-}
+const deleteStudent = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const schoolId = req.user.schoolId;
+    await Student.findByIdAndDelete({ _id: id, school: schoolId });
+    const students = await Student.find({ school: schoolId });
+    res.status(200).json({
+      success: true,
+      message: "Student deleted successfully",
+      students,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Student deletion is failed",
+    });
+  }
+};
 
 module.exports = {
   registerStudent,
@@ -276,5 +278,5 @@ module.exports = {
   getStudentwithId,
   getStudentOwnData,
   updateStudent,
-  deleteStudent
+  deleteStudent,
 };

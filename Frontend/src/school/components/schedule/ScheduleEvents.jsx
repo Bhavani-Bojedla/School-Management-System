@@ -144,10 +144,11 @@ export default function ScheduleEvents({
 
   const fetchData = async () => {
     try {
-      const teacherResponse = await axios.get(`${baseApi}/teacher/all`);
+      const teacherResponse = await axios.get(`${baseApi}/teacher/fetch-with-query`);
       const subjectResponse = await axios.get(`${baseApi}/subject/all`);
       setTeachers(teacherResponse.data.teachers);
       setSubjects(subjectResponse.data.data);
+      console.log("teachers",teacherResponse)
     } catch (error) {
       console.error("Error fetching data:", error);
     }

@@ -7,6 +7,7 @@ import ExplicitIcon from '@mui/icons-material/Explicit';
 import RecentActorsIcon from '@mui/icons-material/RecentActors';
 import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
 import HomeIcon from '@mui/icons-material/Home';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 const TeachernavArr=[
     {link:"/",component:"Home",icon:HomeIcon},
@@ -34,7 +35,8 @@ const SchoolnavArr=[
   {link:"/school/schedule",component:"Schedule",icon:CalendarMonthIcon},
   {link:"/school/attendance",component:"Attendance",icon:RecentActorsIcon},
   {link:"/school/examinations",component:"Examinations",icon:ExplicitIcon},
-  {link:"/school/notifications",component:"Notifications",icon:NotificationsIcon}
+  {link:"/school/notifications",component:"Notifications",icon:NotificationsIcon},
+    {link:"/logout",component:"Log Out",icon:LogoutIcon}
 ]
 
   const Homelinks=[

@@ -26,6 +26,7 @@ const studentRouter=require("./routers/studentRouter")
 const scheduleRouter=require("./routers/scheduleRouter")
 const attendanceRouter=require("./routers/attendanceRouters");
 const examinationRouter=require("./routers/examinationRouters");
+const noticeRouter=require("./routers/noticeRouters");
 //routers using
 app.use("/api/school", schoolRouter);
 app.use("/api/class",classRouter);
@@ -35,6 +36,8 @@ app.use("/api/teacher",teacherRouter);
 app.use("/api/schedule",scheduleRouter);
 app.use("/api/attendance",attendanceRouter);
 app.use("/api/examination",examinationRouter);
+app.use("/api/notice",noticeRouter);
+
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {

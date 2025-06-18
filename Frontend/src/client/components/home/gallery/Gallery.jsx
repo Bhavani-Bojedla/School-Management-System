@@ -22,7 +22,7 @@ export default function Gallery() {
 
   React.useEffect(() => {
     axios
-      .get(`http://localhost:5000/api/school/all`)
+      .get(`https://school-management-system-five-phi.vercel.app/api/school/all`)
       .then((res) => {
         setSchools(res.data.schools);
       })

@@ -29,11 +29,11 @@ export default function Login() {
     onSubmit: (values) => {
      let URL;
      if(role==="student"){
-        URL=`http://localhost:5000/api/student/login`
+        URL=`https://school-management-system-five-phi.vercel.app/api/student/login`
      }else if(role==="teacher"){
-       URL=`http://localhost:5000/api/teacher/login`
+       URL=`https://school-management-system-five-phi.vercel.app/api/teacher/login`
      }else if(role==="school"){
-        URL=`http://localhost:5000/api/school/login`
+        URL=`https://school-management-system-five-phi.vercel.app/api/school/login`
      }
 
       axios

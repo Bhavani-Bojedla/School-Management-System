@@ -44,7 +44,7 @@ export default function Register() {
       fd.append("password", values.password);
 
       axios
-        .post(`http://localhost:5000/api/school/register`, fd)
+        .post(`https://school-management-system-five-phi.vercel.app/api/school/register`, fd)
         .then((res) => {
           console.log(res);
           setMessageType("success");

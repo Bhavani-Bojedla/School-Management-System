@@ -122,10 +122,35 @@ const getSingleClasses = async (req, res) => {
   }
 };
 
+const getAttendeeClasses = async (req, res) => {
+  try {
+    const schoolId = req.user.schoolId;
+    const attendeeId = req.user.id;
+    
+    const Classes = await Class.find({
+      school: schoolId,
+      attendee: attendeeId,
+    });
+    res.status(200).json({
+      success: true,
+      message: "Successfully in fetching Attendee class",
+      data: Classes,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "server error in getting Attendee class",
+    });
+  }
+};
+
+
 module.exports = {
   createClass,
   updateClass,
   deleteClass,
   getAllClasses,
   getSingleClasses,
+  getAttendeeClasses
 };

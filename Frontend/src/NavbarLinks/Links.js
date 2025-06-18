@@ -15,7 +15,8 @@ const TeachernavArr=[
     {link:"/teacher/schedule",component:"Schedule",icon:CalendarMonthIcon},
     {link:"/teacher/attendance",component:"Attendance",icon:RecentActorsIcon},
     {link:"/teacher/examinations",component:"Examinations",icon:ExplicitIcon},
-    {link:"/teacher/notifications",component:"Notifications",icon:NotificationsIcon}
+    {link:"/teacher/notifications",component:"Notifications",icon:NotificationsIcon},
+    {link:"/logout",component:"Log Out",icon:LogoutIcon}
 ]
 const StudentnavArr=[
   {link:"/",component:"Home",icon:HomeIcon},
@@ -36,7 +37,7 @@ const SchoolnavArr=[
   {link:"/school/attendance",component:"Attendance",icon:RecentActorsIcon},
   {link:"/school/examinations",component:"Examinations",icon:ExplicitIcon},
   {link:"/school/notifications",component:"Notifications",icon:NotificationsIcon},
-    {link:"/logout",component:"Log Out",icon:LogoutIcon}
+  {link:"/logout",component:"Log Out",icon:LogoutIcon}
 ]
 
   const Homelinks=[

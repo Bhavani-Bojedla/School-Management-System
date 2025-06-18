@@ -5,7 +5,7 @@ const { createNotice, getAllNotices, updateNotice, deleteNotice ,} = require("..
 const router=express.Router();
 
 router.post("/create",authMiddleware(['SCHOOL']),createNotice);
-router.get("/all",authMiddleware(['SCHOOL']),getAllNotices);
+router.get("/all",authMiddleware(['SCHOOL','TEACHER']),getAllNotices);
 router.patch("/update/:id",authMiddleware(['SCHOOL']),updateNotice);
 router.delete("/delete/:id",authMiddleware(['SCHOOL']),deleteNotice);
  

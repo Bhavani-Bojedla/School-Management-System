@@ -163,9 +163,10 @@ export default function Student() {
   };
   React.useEffect(() => {
     axios
-      .get(`${baseApi}/student/all`, { params })
+      .get(`${baseApi}/student/fetch-with-query`, { params })
       .then((res) => {
         setStudents(res.data.students);
+        console.log("students",res.data)
       })
       .catch((e) => {
         console.log(e);

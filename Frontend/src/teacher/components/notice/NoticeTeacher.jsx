@@ -54,13 +54,13 @@ export default function NoticeTeacher() {
                   mt: 3,
                 }}
               >
-                <Typography variant="h5">
+                <Typography variant="h6">
                   <strong>Notice: </strong> {item.title}
                 </Typography>
-                <Typography variant="h5">
+                <Typography variant="h6">
                   <strong>Message: </strong> {item.message}
                 </Typography>
-                <Typography variant="h5">
+                <Typography variant="h6">
                   <strong>Audience: </strong> {item.audience}
                 </Typography>
               </Box>

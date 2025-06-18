@@ -2,7 +2,7 @@ const Attendance = require("../models/attendanceSchema");
 const moment = require("moment");
 const markAttendance = async (req, res) => {
   try {
-    const [studentId, date, status, classId] = req.body;
+    const {studentId, date, status, classId} = req.body;
     const schoolId = req.user.schoolId;
     const newAttendance = new Attendance({
       student: studentId,
@@ -11,7 +11,6 @@ const markAttendance = async (req, res) => {
       class: classId,
       school: schoolId,
     });
-
     await newAttendance.save();
     res.status(201).json(newAttendance);
   } catch (error) {

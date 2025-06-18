@@ -37,8 +37,8 @@ export default function AttendanceDetails() {
     const navigate=useNavigate();
 
     const convertDate=(dateData)=>{
-         const data=new Date(dateData);
-         return date.getDate()+"-"+(+date.getMonth()+1)+"-"+data.getFullYear();
+         const date=new Date(dateData);
+         return date.getDate()+"-"+(date.getMonth()+1)+"-"+date.getFullYear();
     }
     const fetchAttendanceData=async()=>{
         try{
@@ -49,7 +49,7 @@ export default function AttendanceDetails() {
            console.log("respdata",respData)
            if(respData){
                 respData.forEach(attendance=>{
-            if(attendance.status==="Present"){
+            if(attendance.status==="present"){
                setPresent(present+1)
             }else if(attendance.status==="absent"){
                setAbsent(absent+1)

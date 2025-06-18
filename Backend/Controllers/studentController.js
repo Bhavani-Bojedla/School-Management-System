@@ -145,7 +145,7 @@ const getStudentOwnData = async (req, res) => {
     const schoolId = req.user.schoolId;
     const student = await Student.findOne({ _id: id, school: schoolId }).select(
       ["-password"]
-    );
+    ).populate("student_class");
     if (student) {
       res.status(200).json({
         success: true,

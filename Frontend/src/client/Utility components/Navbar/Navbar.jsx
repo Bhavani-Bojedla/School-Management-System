@@ -12,9 +12,12 @@ import MenuItem from "@mui/material/MenuItem";
 import AdbIcon from "@mui/icons-material/Adb";
 import { Homelinks } from "../../../NavbarLinks/Links";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../../context/AuthContext";
 
 export default function Navbar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
+  const { user, authenticated } = useContext(AuthContext);
+  const [check, setcheck] = useState(false);
 
   const navigate = useNavigate();
 

@@ -24,7 +24,8 @@ const StudentnavArr=[
   {link:"/student/schedule",component:"Schedule",icon:CalendarMonthIcon},
   {link:"/student/attendance",component:"Attendance",icon:RecentActorsIcon},
   {link:"/student/examinations",component:"Examinations",icon:ExplicitIcon},
-  {link:"/student/notifications",component:"Notifications",icon:NotificationsIcon}
+  {link:"/student/notifications",component:"Notifications",icon:NotificationsIcon},
+   {link:"/logout",component:"Log Out",icon:LogoutIcon}
 ]
 const SchoolnavArr=[
   {link:"/",component:"Home",icon:HomeIcon},

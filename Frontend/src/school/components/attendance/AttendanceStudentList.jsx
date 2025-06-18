@@ -92,7 +92,7 @@ export default function AttendanceStudentList() {
     const attendanceRecords=response.data;
     const totalClasses=attendanceRecords.length;
     const presentCount=attendanceRecords.filter(
-      (record)=>record.status==="Present"
+      (record)=>record.status==="present"
     ).length;
     const attendancePercentage=totalClasses>0?(presentCount/totalClasses)*100:0;
 

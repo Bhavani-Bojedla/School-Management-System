@@ -18,21 +18,55 @@ import {
   TableRow,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
+import MessageSnackbar from "../../../Basic utitlity compoenents/SnackBar/MessageSnackbar";
 
 export default function AttendanceTeacher() {
   const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null);
-  const [attendanceStatus,setAttendanceStatus]=useState([]);
-   const handleAttendance=(studentId,status)=>{
-      setAttendanceStatus((prevStatus)=>({
-        ...prevStatus,
-        [studentId]:status
-      }))
-   }
-   const submitAttendance=()=>{
+  const [attendanceStatus, setAttendanceStatus] = useState([]);
 
-   }
-  
+  const [message, setMessage] = React.useState("");
+  const [messageType, setMessageType] = React.useState("success");
+
+  const handleMessageClose = () => {
+    setMessage("");
+  };
+
+  const handleAttendance = (studentId, status) => {
+    setAttendanceStatus((prevStatus) => ({
+      ...prevStatus,
+      [studentId]: status,
+    }));
+  };
+  const singleStudentattendance = async (studentId, status) => {
+    try {
+      const response = await axios.post(`${baseApi}/attendance/mark`, {
+        studentId,
+        date: new Date(),
+        classId: selectedClass,
+        status,
+      });
+      // console.log("marking attendance", response);
+    } catch (error) {
+      console.log("Error in marking attendee", error);
+    }
+  };
+  const submitAttendance = async () => {
+    try {
+      await Promise.all(
+        students.map((student) => {
+          singleStudentattendance(student._id, attendanceStatus[student._id]);
+        })
+      );
+      setMessage("Attendance Submitted Successfully");
+      setMessageType("success");
+    } catch (error) {
+      setMessage("Failed attendance submission");
+      setMessageType("error");
+      console.log("Error in marking all attendees", error);
+    }
+  };
+
   const fetchAttendeeClass = async () => {
     try {
       const response = await axios.get(`${baseApi}/class/attendee`);
@@ -50,25 +84,49 @@ export default function AttendanceTeacher() {
     fetchAttendeeClass();
   }, []);
   const [students, setStudents] = useState([]);
-  React.useEffect(() => {
-    if(!selectedClass) return;
-    axios
-      .get(`${baseApi}/student/fetch-with-query`, {
-        params: { student_class: selectedClass },
-      })
-      .then((res) => {
-        setStudents(res.data.students);
-        res.data.students.forEach(student => {
-          handleAttendance(student._id,"absent")
-        });
-        console.log("students", res.data);
-      })
-      .catch((e) => {
-        console.log(e);
-      });
-  }, [selectedClass]);
+  const [attendanceChecked, setAttendanceChecked] = useState(false);
+  const checkAttendanceAndFetchStudents = async () => {
+    try {
+      if (selectedClass) {
+        const responseStudents = await axios.get(
+          `${baseApi}/student/fetch-with-query`,
+          {
+            params: { student_class: selectedClass },
+          }
+        );
+        const responseCheck = await axios.get(
+          `${baseApi}/attendance/check/${selectedClass}`
+        );
+        if (!responseCheck.data.attendanceTaken) {
+          setStudents(responseStudents.data.students);
+          responseStudents.data.students.forEach((student) => {
+            handleAttendance(student._id, "present");
+          });
+          console.log("students", responseStudents.data);
+        } else {
+          // setStudents([]);
+          setAttendanceChecked(true);
+        }
+        console.log("check attendance", responseCheck);
+      }
+    } catch (error) {
+      console.log("Error in checking attendance", error);
+    }
+  };
+
+  useEffect(() => {
+    checkAttendanceAndFetchStudents();
+  }, [selectedClass, message]);
+
   return (
     <div>
+      {message && (
+        <MessageSnackbar
+          message={message}
+          messageType={messageType}
+          handleClose={handleMessageClose}
+        />
+      )}
       <h1>AttendanceTeacher</h1>
       {classes.length > 0 ? (
         <Paper sx={{ marginBottom: "20px" }}>
@@ -81,6 +139,7 @@ export default function AttendanceTeacher() {
               <Select
                 onChange={(e) => {
                   setSelectedClass(e.target.value);
+                  setAttendanceChecked(false);
                 }}
                 label="Subject"
                 value={selectedClass}
@@ -102,7 +161,11 @@ export default function AttendanceTeacher() {
           You are not attendee of any class.
         </Alert>
       )}
-      {students.length > 0 ? (
+      {attendanceChecked ? (
+        <Alert icon={<CheckIcon fontSize="inherit" />} severity="info">
+          Attendance has already been taken for this class.
+        </Alert>
+      ) : students.length > 0 ? (
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="simple table">
             <TableHead>
@@ -121,27 +184,19 @@ export default function AttendanceTeacher() {
                   key={student._id}
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                 >
-                  <TableCell align="right" component="th" scope="row">
-                    {student.name}
-                  </TableCell>
+                  <TableCell align="right">{student.name}</TableCell>
                   <TableCell align="right">
                     <FormControl sx={{ marginTop: "10px", minWidth: "200px" }}>
-                       <InputLabel id="demo-simple-select-label">Attendance</InputLabel>
+                      <InputLabel>Attendance</InputLabel>
                       <Select
-                        onChange={(e) => {
-                          handleAttendance(student._id,e.target.value);
-                        }}
+                        onChange={(e) =>
+                          handleAttendance(student._id, e.target.value)
+                        }
                         label="Attendance"
                         value={attendanceStatus[student._id]}
                       >
-                        <MenuItem value={""}>Select Class</MenuItem>
-
-                        <MenuItem value={"present"} >
-                          Present
-                        </MenuItem>
-                         <MenuItem value={"absent"} >
-                          Absent
-                        </MenuItem>
+                        <MenuItem value={"present"}>Present</MenuItem>
+                        <MenuItem value={"absent"}>Absent</MenuItem>
                       </Select>
                     </FormControl>
                   </TableCell>
@@ -149,10 +204,12 @@ export default function AttendanceTeacher() {
               ))}
             </TableBody>
           </Table>
-          <Button variant="contained" onClick={submitAttendance}>Take Attendance</Button>
+          <Button variant="contained" onClick={submitAttendance}>
+            Take Attendance
+          </Button>
         </TableContainer>
       ) : (
-        <Alert icon={<CheckIcon fontSize="inherit" />} severity="error">
+        <Alert icon={<CheckIcon fontSize="inherit" />} severity="warning">
           There are no students in this class.
         </Alert>
       )}

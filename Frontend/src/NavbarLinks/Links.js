@@ -42,8 +42,6 @@ const SchoolnavArr=[
 ]
 
   const Homelinks=[
-    {link:"/",component:"Home"},
-    {link:"/login",component:"Login"},
-    {link:"/register",component:"Register"}
+    
   ]
  export {Homelinks,SchoolnavArr,TeachernavArr,StudentnavArr}

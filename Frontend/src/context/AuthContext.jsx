@@ -6,10 +6,15 @@ export const AuthContext=createContext();
 export const AuthProvider=({children})=>{
    const [authenticated,setautheticated]=useState(false);
    const [user,setuser]=useState(null)
+   const [dark,setDark]=useState(false);
    
    useEffect(()=>{
+    const mode=localStorage.getItem("mode");
      const token=localStorage.getItem('token');
      const usestr=localStorage.getItem('user')
+     if(mode){
+        setDark(JSON.parse(mode));
+     }
      if(token){
         setautheticated(true);
      }
@@ -29,9 +34,12 @@ export const AuthProvider=({children})=>{
     setautheticated(false);
     setuser(null);
    }
-
+   const modeChange=()=>{
+    localStorage.setItem("mode",`${!dark}`)
+    setDark(!dark);
+   }
     return(
-        <AuthContext.Provider value={{authenticated,user,login,logout}}>
+        <AuthContext.Provider value={{authenticated,user,dark,login,logout,modeChange}}>
             {children}
         </AuthContext.Provider>
     )

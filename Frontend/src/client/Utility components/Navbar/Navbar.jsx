@@ -16,9 +16,13 @@ import { AuthContext } from "../../../context/AuthContext";
 
 export default function Navbar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
-  const { user, authenticated } = useContext(AuthContext);
-  const [check, setcheck] = useState(false);
-
+  const { user, authenticated } = React.useContext(AuthContext);
+  // const [check, setcheck] = useState(false);
+  const [pages, setPages] = React.useState([
+    { link: "/", component: "Home" },
+    { link: "/login", component: "Login" },
+    { link: "/register", component: "Register" },
+  ]);
   const navigate = useNavigate();
 
   const handleOpenNavMenu = (event) => {
@@ -30,6 +34,15 @@ export default function Navbar() {
     navigate(link);
   };
 
+  React.useEffect(() => {
+    if (authenticated) {
+      setPages([
+        { link: "/", component: "Home" },
+        { link: "/logout", component: "Log Out" },
+        { link: `${user.role.toLowerCase()}`, component: "Dashboard" },
+      ]);
+    }
+  },[]);
   return (
     <AppBar position="static">
       <Container maxWidth="xl">
@@ -80,7 +93,7 @@ export default function Navbar() {
               onClose={handleCloseNavMenu}
               sx={{ display: { xs: "block", md: "none" } }}
             >
-              {Homelinks.map((page, i) => (
+              {pages.map((page, i) => (
                 <MenuItem
                   key={i}
                   onClick={() => {
@@ -114,7 +127,7 @@ export default function Navbar() {
             SCHOOL MANAGEMENT SYSTEM
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-            {Homelinks.map((page, i) => (
+            {pages.map((page, i) => (
               <Button
                 key={i}
                 onClick={() => {

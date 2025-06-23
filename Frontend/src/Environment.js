@@ -1,2 +1,2 @@
-const baseApi='http://localhost:5000/api'
+const baseApi='https://school-management-system-five-phi.vercel.app'
 export {baseApi}
